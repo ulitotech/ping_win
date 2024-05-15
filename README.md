@@ -5,6 +5,7 @@
 ## Features
 
 - Ping devices via remoted server
+- Recognize ICCID via text or photo
 - Update DB with excel files (admin privilegion)
 - Get SMS template for manual ping device 
 - Get help about ping process
