@@ -19,7 +19,7 @@ async def add_to_database(message: Message, session: AsyncSession):
             await message.answer(lexicon_for_bot['loading'])
             try:
                 addition_info = await add_helps(session, message)
-                await message.answer(f"{addition_info}\n{lexicon_for_bot['added_help']}")
+                await message.answer(f"{lexicon_for_bot['added_help']}[{addition_info}]")
                 await message.bot.delete_message(message.chat.id, message_id=message.message_id + 1)
                 logger.info(f"Пользователь: {message.from_user.id} загрузил справку в базу")
             except exc.SQLAlchemyError as e:
@@ -31,7 +31,7 @@ async def add_to_database(message: Message, session: AsyncSession):
             await message.answer(lexicon_for_bot['loading'])
             try:
                 addition_info = await add_operators(session, message)
-                await message.answer(f"{addition_info}\n{lexicon_for_bot['added_operators']}")
+                await message.answer(f"{lexicon_for_bot['added_operators']}\n[{addition_info}]")
                 await message.bot.delete_message(message.chat.id, message_id=message.message_id + 1)
                 logger.info(f"Пользователь: {message.from_user.id} загрузил операторов в базу")
             except exc.SQLAlchemyError as e:
@@ -43,7 +43,7 @@ async def add_to_database(message: Message, session: AsyncSession):
             await message.answer(lexicon_for_bot['loading'])
             try:
                 addition_info = await add_devices(session, message)
-                await message.answer(f"{addition_info}\n{lexicon_for_bot['added_devices']}")
+                await message.answer(f"{lexicon_for_bot['added_devices']}\n[{addition_info}]")
                 await message.bot.delete_message(message.chat.id, message_id=message.message_id + 1)
                 logger.info(f"Пользователь: {message.from_user.id} загрузил устройства в базу")
             except exc.SQLAlchemyError:
@@ -55,7 +55,7 @@ async def add_to_database(message: Message, session: AsyncSession):
             await message.answer(lexicon_for_bot['loading'])
             try:
                 addition_info = await add_users(session, message)
-                await message.answer(f"{addition_info}\n{lexicon_for_bot['added_users']}")
+                await message.answer(f"{lexicon_for_bot['added_users']}\n[{addition_info}]")
                 await message.bot.delete_message(message.chat.id, message_id=message.message_id + 1)
                 logger.info(f"Пользователь: {message.from_user.id} загрузил других пользователей в базу")
             except exc.SQLAlchemyError:
@@ -67,7 +67,7 @@ async def add_to_database(message: Message, session: AsyncSession):
             await message.answer(lexicon_for_bot['loading'])
             try:
                 addition_info = await add_sims(session, message)
-                await message.answer(f"{addition_info}\n{lexicon_for_bot['added_sims']}")
+                await message.answer(f"{lexicon_for_bot['added_sims']}\n[{addition_info}]")
                 await message.bot.delete_message(message.chat.id, message_id=message.message_id + 1)
                 logger.info(f"Пользователь: {message.from_user.id} загрузил СИМ в базу")
             except exc.SQLAlchemyError:
@@ -78,8 +78,8 @@ async def add_to_database(message: Message, session: AsyncSession):
             await message.delete()
             await message.answer(lexicon_for_bot['loading'])
             try:
-                await add_projects(session, message)
-                await message.answer('👍Проекты добавлены')
+                addition_info = await add_projects(session, message)
+                await message.answer(f'👍Проекты добавлены\n[{addition_info}]')
                 logger.info(f"Пользователь: {message.from_user.id} загрузил проекты в базу")
             except exc.SQLAlchemyError as e:
                 await message.answer(lexicon_for_bot['check_loaded_base'])

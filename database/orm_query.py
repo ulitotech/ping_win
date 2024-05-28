@@ -16,7 +16,7 @@ async def add_users(session: AsyncSession, message: Message):
     chunk = 1000
     for i in range(0, len(users), chunk):
         for user in users[i:i + chunk]:
-            query = select(Sim.iccid, Sim.number_tel)
+            query = select(User.telegram_id)
             result = await session.execute(query)
             rows = result.all()
             telegram_id_for_comparison = set(i.telegram_id for i in rows)
@@ -31,9 +31,9 @@ async def add_users(session: AsyncSession, message: Message):
                 ))
         await session.commit()
     if double_rows:
-        return f'Пропущены строки с ID: {", ".join(double_rows)}!!!'
+        return f'Пропущены строки с ID: {", ".join(double_rows)}'
     else:
-        return 'Дублей нет'
+        return 'Данные корректны'
 
 
 async def get_devices(session: AsyncSession):
@@ -105,7 +105,7 @@ async def add_sims(session: AsyncSession, message: Message):
     if double_rows:
         return f'Пропущены строки с ICCID: {", ".join(double_rows)}!!!'
     else:
-        return 'Дублей нет'
+        return 'Данные корректны'
 
 
 async def add_devices(session: AsyncSession, message: Message):
@@ -114,7 +114,7 @@ async def add_devices(session: AsyncSession, message: Message):
     chunk = 1000
     for i in range(0, len(devices), chunk):
         for device in devices[i:i + chunk]:
-            query = select(Sim.iccid, Sim.number_tel)
+            query = select(Device.name)
             result = await session.execute(query)
             rows = result.all()
             name_for_comparison = set(i.name for i in rows)
@@ -131,9 +131,9 @@ async def add_devices(session: AsyncSession, message: Message):
         await session.commit()
         await sleep(0.5)
     if double_rows:
-        return f'Пропущены строки с Name: {", ".join(double_rows)}!!!'
+        return f'Пропущены строки с Name: {", ".join(double_rows)}'
     else:
-        return 'Дублей нет'
+        return 'Данные корректны'
 
 
 async def add_helps(session: AsyncSession, message: Message):
@@ -142,7 +142,7 @@ async def add_helps(session: AsyncSession, message: Message):
     chunk = 1000
     for i in range(0, len(helps), chunk):
         for help in helps[i:i + chunk]:
-            query = select(Sim.iccid, Sim.number_tel)
+            query = select(Help.name)
             result = await session.execute(query)
             rows = result.all()
             name_for_comparison = set(i.name for i in rows)
@@ -158,9 +158,9 @@ async def add_helps(session: AsyncSession, message: Message):
         await session.commit()
         await sleep(0.5)
     if double_rows:
-        return f'Пропущены строки с Name: {", ".join(double_rows)}!!!'
+        return f'Пропущены строки с Name: {", ".join(double_rows)}'
     else:
-        return 'Дублей нет'
+        return 'Данные корректны'
 
 
 async def get_help(session: AsyncSession, help_name: str):
@@ -175,7 +175,7 @@ async def add_projects(session: AsyncSession, message: Message):
     chunk = 1000
     for i in range(0, len(projects), chunk):
         for project in projects[i:i + chunk]:
-            query = select(Sim.iccid, Sim.number_tel)
+            query = select(Project.name)
             result = await session.execute(query)
             rows = result.all()
             name_for_comparison = set(i.name for i in rows)
@@ -191,9 +191,9 @@ async def add_projects(session: AsyncSession, message: Message):
         await session.commit()
         await sleep(0.5)
     if double_rows:
-        return f'Пропущены строки с Name: {", ".join(double_rows)}!!!'
+        return f'Пропущены строки с Name: {", ".join(double_rows)}'
     else:
-        return 'Дублей нет'
+        return 'Данные корректны'
 
 
 async def add_operators(session: AsyncSession, message: Message):
@@ -202,7 +202,7 @@ async def add_operators(session: AsyncSession, message: Message):
     chunk = 1000
     for i in range(0, len(operators), chunk):
         for operator in operators[i:i + chunk]:
-            query = select(Sim.iccid, Sim.number_tel)
+            query = select(Operator.name)
             result = await session.execute(query)
             rows = result.all()
             name_for_comparison = set(i.name for i in rows)
@@ -220,6 +220,6 @@ async def add_operators(session: AsyncSession, message: Message):
         await session.commit()
         await sleep(0.5)
     if double_rows:
-        return f'Пропущены строки с Name: {", ".join(double_rows)}!!!'
+        return f'Пропущены строки с Name: {", ".join(double_rows)}'
     else:
-        return 'Дублей нет'
+        return 'Данные корректны'
