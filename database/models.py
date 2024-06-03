@@ -28,7 +28,7 @@ class Device(Base):
     __tablename__ = 'device'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(40), nullable=False, unique=True)
+    name: Mapped[str] = mapped_column(String(40), nullable=False)
     interface: Mapped[str] = mapped_column(String(10))
     settings: Mapped[str] = mapped_column(String(250))
 
@@ -55,9 +55,9 @@ class Operator(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(10), nullable=False)
-    apn: Mapped[str] = mapped_column(String(20), nullable=False)
-    login: Mapped[str] = mapped_column(String(20), nullable=False)
-    password: Mapped[str] = mapped_column(String(20), nullable=False)
+    apn: Mapped[str] = mapped_column(String(20))
+    login: Mapped[str] = mapped_column(String(20))
+    password: Mapped[str] = mapped_column(String(20))
     sims: Mapped[List['Sim']] = relationship(back_populates='operator')
 
 

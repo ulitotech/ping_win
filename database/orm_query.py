@@ -198,7 +198,6 @@ async def add_projects(session: AsyncSession, message: Message):
 
 async def add_operators(session: AsyncSession, message: Message):
     operators = await read_excel(Bot, message)
-    double_rows = []
     chunk = 1000
     for i in range(0, len(operators), chunk):
         for operator in operators[i:i + chunk]:
@@ -206,20 +205,13 @@ async def add_operators(session: AsyncSession, message: Message):
             result = await session.execute(query)
             rows = result.all()
             name_for_comparison = set(i.name for i in rows)
-            if operator['name'] in name_for_comparison:
-                double_rows.append(operator['name'])
-                continue
-            else:
-                name_for_comparison.add(operator['name'])
-                session.add(Operator(
-                    name=operator['name'],
-                    apn=operator['apn'],
-                    login=operator['login'],
-                    password=operator['password'],
-                ))
+            name_for_comparison.add(operator['name'])
+            session.add(Operator(
+                name=operator['name'],
+                apn=operator['apn'],
+                login=operator['login'],
+                password=operator['password'],
+            ))
         await session.commit()
         await sleep(0.5)
-    if double_rows:
-        return f'Пропущены строки с Name: {", ".join(double_rows)}'
-    else:
-        return 'Данные корректны'
+    return 'Данные корректны'

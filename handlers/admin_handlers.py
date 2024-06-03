@@ -19,7 +19,7 @@ async def add_to_database(message: Message, session: AsyncSession):
             await message.answer(lexicon_for_bot['loading'])
             try:
                 addition_info = await add_helps(session, message)
-                await message.answer(f"{lexicon_for_bot['added_help']}[{addition_info}]")
+                await message.answer(f"{lexicon_for_bot['added_help']}\n[{addition_info}]")
                 await message.bot.delete_message(message.chat.id, message_id=message.message_id + 1)
                 logger.info(f"Пользователь: {message.from_user.id} загрузил справку в базу")
             except exc.SQLAlchemyError as e:

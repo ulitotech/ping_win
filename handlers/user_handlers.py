@@ -123,7 +123,7 @@ async def ping_device(message: Message, state: FSMContext, session: AsyncSession
             if sim_card.state == "Активен":
                 await state.update_data(iccid=prepared_number)
                 await state.update_data(ip=sim_card.ip)
-                logger.info(f"Пользователь: {message.from_user.id} запустил ping: {sim_card.ip}")
+                logger.info(f"Пользователь: {message.from_user.id} запустил ping: {prepared_number}")
                 await message.bot.delete_messages(chat_id=message.chat.id,
                                                   message_ids=[message.message_id, message.message_id - 1])
                 await state.set_state(FSMUser.server)
@@ -147,25 +147,38 @@ async def ping_device(message: Message, state: FSMContext, session: AsyncSession
                     await state.set_state(FSMUser.work)
                     logger.info(f"Пользователь: {message.from_user.id} ping {sim_card.ip} успешен")
                 else:
-                    await state.set_state(FSMUser.sms)
-                    await state.update_data(ip=sim_card.ip)
-                    state_data = await state.get_data()
-                    await message.bot.delete_messages(chat_id=message.chat.id,
-                                                      message_ids=[message.message_id + 1])
-                    devices = await get_devices(session)
-                    await message.answer(text=f"ICCID:{state_data['iccid']}\nIP:{state_data['ip']}\n"
-                                              f"{lexicon_for_bot['select_device_from_list']}",
-                                         reply_markup=get_devices_pagination(btns=devices,
-                                                                             current_page=1))
-                    logger.info(f"Пользователь: {message.from_user.id} неудачный ping: {sim_card.ip}")
+                    if str(sim_card.number_tel).isdigit() and len(sim_card.number_tel) == 11:
+                        await state.set_state(FSMUser.sms)
+                        if sim_card.ip != '':
+                            await state.update_data(ip=sim_card.ip)
+                            logger.info(f"Пользователь: {message.from_user.id} неудачный ping: {prepared_number}")
+                        else:
+                            await state.update_data(ip="Нет IP в БД")
+                            logger.info(f"Пользователь: {message.from_user.id} неудачный ping: {prepared_number} из-за "
+                                        f"отсутствия IP в БД")
+                        state_data = await state.get_data()
+                        await message.bot.delete_messages(chat_id=message.chat.id,
+                                                          message_ids=[message.message_id + 1])
+                        devices = await get_devices(session)
+                        await message.answer(text=f"ICCID: {state_data['iccid']}\nIP: {state_data['ip']}\n"
+                                                  f"{lexicon_for_bot['select_device_from_list']}",
+                                             reply_markup=get_devices_pagination(btns=devices,
+                                                                                 current_page=1))
+                    else:
+                        await message.bot.delete_messages(chat_id=message.chat.id,
+                                                          message_ids=[message.message_id + 1])
+                        await wrong_content(state, message, FSMUser, f'ICCID: {prepared_number}\nНевозможно отправить '
+                                                                     f'СМС на данную СИМ, попробовать другую?')
+                        logger.info(f"Пользователь: {message.from_user.id} передал ICCID: {prepared_number} SIM без "
+                                    f"номера телефона в БД")
             else:
                 await message.delete()
                 await wrong_content(state, message, FSMUser, f'ICCID:{prepared_number}\nSIM неактивна,'
                                                              f' попробовать другую?')
-                logger.info(f"Пользователь: {message.from_user.id} передал ICCID:{prepared_number} неактивной SIM")
+                logger.info(f"Пользователь: {message.from_user.id} передал ICCID: {prepared_number} неактивной SIM")
         else:
             await message.delete()
-            await wrong_content(state, message, FSMUser, f'ICCID:{prepared_number}\nSIM не найдена в базе данных,'
+            await wrong_content(state, message, FSMUser, f'ICCID: {prepared_number}\nSIM не найдена в базе данных,'
                                                          f' попробовать другую?')
             logger.info(f"Пользователь: {message.from_user.id} передал ICCID: {message.text}."
                         f" SIM в базе не найдена")
