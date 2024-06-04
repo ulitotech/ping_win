@@ -228,8 +228,6 @@ async def send_sms(callback_query: CallbackQuery,
                    session: AsyncSession, state: FSMContext):
     state_data = await state.get_data()
     sms = await sms_parameters(session, callback_data.id, iccid=state_data['iccid'])
-    if 'None' in sms['text']:
-        sms['text'] = sms['text'].replace('None', sms['number_tel'])
     logger.info(f"Пользователь: {callback_query.from_user.id} отправил СМС на номер: {sms['number_tel']}")
     await callback_query.message.edit_text(text="<u>Отправь СМС с текстом</u>\n"
                                                 f"<b>ТЕКСТ</b> <i>(нажать для копирования)</i>:\n"

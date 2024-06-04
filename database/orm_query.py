@@ -59,12 +59,12 @@ async def get_sim(session: AsyncSession, data: int):
     return result.scalar()
 
 
-async def sms_parameters(session: AsyncSession, device_id: int, iccid: int) -> str:
+async def sms_parameters(session: AsyncSession, device_id: int, iccid: int) -> dict:
     query_settings_template = select(Device.settings).where(Device.id == str(device_id))
     settings_template = await session.execute(query_settings_template)
     settings_template = settings_template.one_or_none()
     query_device_parameters = select(Sim.number_tel, Operator.apn, Operator.login, Operator.password,
-                                     Project.port).join(Operator).join(Project).where(Sim.iccid == str(iccid))
+                                     Project.port, Operator.id).join(Operator).join(Project).where(Sim.iccid == str(iccid))
     device_parameters = await session.execute(query_device_parameters)
     device_parameters = device_parameters.one_or_none()
     device_settings = settings_template[0].replace('{apn}',
@@ -72,7 +72,10 @@ async def sms_parameters(session: AsyncSession, device_id: int, iccid: int) -> s
                                                                                   device_parameters.login).replace(
         '{password}',
         device_parameters.password).replace('{port}', device_parameters.port)
-
+    if device_parameters.id == 2:
+        device_settings = device_settings.replace('None', device_parameters.number_tel)
+    if device_parameters.id in [3, 4, 5]:
+        device_settings = device_settings.replace('None', '')
     return {"number_tel": device_parameters.number_tel, "text": html.escape(device_settings)}
 
 
