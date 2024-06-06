@@ -231,7 +231,7 @@ async def send_sms(callback_query: CallbackQuery,
     logger.info(f"Пользователь: {callback_query.from_user.id} отправил СМС на номер: {sms['number_tel']}")
     await callback_query.message.edit_text(text="<u>Отправь СМС с текстом</u>\n"
                                                 f"<b>ТЕКСТ</b> <i>(нажать для копирования)</i>:\n"
-                                                f"<code>{sms['text']}</code>\n"
+                                                f"<code>{sms['text'].replace(chr(160), chr(32))}</code>\n"
                                                 f"<b>НОМЕР</b>:\n"
                                                 f"+{sms['number_tel']}",
                                            reply_markup=get_callback_btns(
