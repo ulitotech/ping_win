@@ -208,11 +208,10 @@ async def support_info(callback_query: CallbackQuery, state: FSMContext, session
     logger.info(f"Пользователь: {callback_query.from_user.id} перешел к разделу помощи по настройке")
     support_text = await get_help(session=session, help_name='support')
     await callback_query.message.edit_text(
-        text=f"{support_text}\n"
-             "Если это не помогло, то свяжитесь с <a href='tg://user?id=631261314'>Тех. поддержкой</a>",
+        text=f"{support_text}",
         reply_markup=get_callback_btns(
             btns={
-                lexicon_for_bot['try_again']: MenuCallBack(menu_name='try_ping_again').pack(),
+                lexicon_for_bot['try_again']: MenuCallBack(menu_name='try_ping_again_2').pack(),
                 lexicon_for_bot['main']: MenuCallBack(menu_name='main').pack(),
             },
             sizes=(1, 1)
@@ -276,7 +275,6 @@ async def try_ping_again(callback_query: CallbackQuery, state: FSMContext, sessi
     else:
         start_msg_id = state_data['start_msg_id']
         current_msg_id = callback_query.message.message_id
-        print(start_msg_id, current_msg_id)
         await callback_query.bot.delete_messages(chat_id=callback_query.message.chat.id,
                                                  message_ids=[i for i in range(start_msg_id + 1, current_msg_id + 2)])
         if 'try_ping_again_2' in callback_query.data:
