@@ -117,7 +117,7 @@ async def ping_device(message: Message, state: FSMContext, session: AsyncSession
         await wrong_content(state, message, FSMUser, prepared_number)
         logger.info(f"Пользователь: {message.from_user.id}. Ошибка на стадии передачи ICCID: {prepared_number}")
     else:
-        logger.info(f"Пользователь: {message.from_user.id} передал ICCID : {prepared_number}")
+        logger.info(f"Пользователь: {message.from_user.id} передал ICCID: {prepared_number}")
         sim_card = await get_sim(session, prepared_number)
         if sim_card is not None:
             if sim_card.state == "Активен":
@@ -145,7 +145,7 @@ async def ping_device(message: Message, state: FSMContext, session: AsyncSession
                         )
                     )
                     await state.set_state(FSMUser.work)
-                    logger.info(f"Пользователь: {message.from_user.id} ping {sim_card.ip} успешен")
+                    logger.info(f"Пользователь: {message.from_user.id} ping {prepared_number} успешен")
                 else:
                     if str(sim_card.number_tel).isdigit() and len(sim_card.number_tel) == 11:
                         await state.set_state(FSMUser.sms)
@@ -206,7 +206,7 @@ async def choice_device(callback: CallbackQuery,
                             StateFilter(FSMUser.sms))
 async def support_info(callback_query: CallbackQuery, state: FSMContext, session: AsyncSession):
     logger.info(f"Пользователь: {callback_query.from_user.id} перешел к разделу помощи по настройке")
-    support_text = await get_help(session=session, help_name='wrong_ping')
+    support_text = await get_help(session=session, help_name='support')
     await callback_query.message.edit_text(
         text=f"{support_text}\n"
              "Если это не помогло, то свяжитесь с <a href='tg://user?id=631261314'>Тех. поддержкой</a>",
@@ -247,21 +247,21 @@ async def send_sms(callback_query: CallbackQuery,
 
 
 # Повторная попытка пинга
-@user_router.callback_query(MenuCallBack.filter(F.menu_name == 'try_ping_again'),
+@user_router.callback_query(or_f(MenuCallBack.filter(F.menu_name == 'try_ping_again'),
+                                 MenuCallBack.filter(F.menu_name == 'try_ping_again_2')),
                             StateFilter(FSMUser.iccid))
-async def try_ping_again(callback_query: CallbackQuery, state: FSMContext):
+async def try_ping_again(callback_query: CallbackQuery, state: FSMContext, session: AsyncSession):
     state_data = await state.get_data()
-    logger.info(f"Пользователь: {callback_query.from_user.id} перешел к ping: {state_data['ip']}")
+    logger.info(f"Пользователь: {callback_query.from_user.id} перешел к повторному ping: {state_data['iccid']}")
     await state.set_state(FSMUser.server)
     await callback_query.message.delete()
     await callback_query.message.answer(lexicon_for_bot['wait_for_server'])
+
     if await connection_test(state_data['ip']):
-        state_data = await state.get_data()
         start_msg_id = state_data['start_msg_id']
         current_msg_id = callback_query.message.message_id
         await callback_query.bot.delete_messages(chat_id=callback_query.message.chat.id,
-                                                 message_ids=[i for i in range(start_msg_id + 1, current_msg_id + 2)]
-                                          )
+                                                 message_ids=[i for i in range(start_msg_id + 1, current_msg_id + 2)])
         await callback_query.answer(
             text=f'{lexicon_for_bot["good_ping"]}{state_data["iccid"]}\nIP: {state_data["ip"]}',
             reply_markup=get_callback_btns(
@@ -272,21 +272,38 @@ async def try_ping_again(callback_query: CallbackQuery, state: FSMContext):
             )
         )
         await state.set_state(FSMUser.work)
-        logger.info(f"Ping {state_data['iccid']} успешен")
+        logger.info(f"Пользователь: {callback_query.from_user.id}: ping {state_data['iccid']} успешен")
     else:
+        start_msg_id = state_data['start_msg_id']
+        current_msg_id = callback_query.message.message_id
+        print(start_msg_id, current_msg_id)
         await callback_query.bot.delete_messages(chat_id=callback_query.message.chat.id,
-                                                 message_ids=[callback_query.message.message_id + 1])
-        await callback_query.message.answer(
-                                            text=lexicon_for_bot['no_connection'],
-                                            reply_markup=get_callback_btns(
-                                                btns={
-                                                    lexicon_for_bot['main']: MenuCallBack(menu_name='main').pack(),
-                                                },
-                                                sizes=(1, 1)
-                                            )
-                                            )
+                                                 message_ids=[i for i in range(start_msg_id + 1, current_msg_id + 2)])
+        if 'try_ping_again_2' in callback_query.data:
+            await callback_query.message.answer(
+                                                text=lexicon_for_bot['no_connection'],
+                                                reply_markup=get_callback_btns(
+                                                    btns={
+                                                        lexicon_for_bot['main']: MenuCallBack(menu_name='main').pack(),
+                                                    },
+                                                    sizes=(1, 1)
+                                                )
+                                                )
+        else:
+            support_text = await get_help(session=session, help_name='support')
+            await callback_query.message.answer(
+                                                text=f"{lexicon_for_bot['check_device']}\n{support_text}",
+                                                reply_markup=get_callback_btns(
+                                                    btns={
+                                                        lexicon_for_bot['try_again']:
+                                                            MenuCallBack(menu_name='try_ping_again_2').pack(),
+                                                        lexicon_for_bot['main']: MenuCallBack(menu_name='main').pack(),
+                                                    },
+                                                    sizes=(1, 1)
+                                                )
+                                                )
         await state.set_state(FSMUser.iccid)
-        logger.info(f"Ping {state_data['iccid']} неуспешен")
+        logger.info(f"Пользователь: {callback_query.from_user.id} ping {state_data['iccid']} неуспешен")
 
 
 # Удаление всех неожидаемых данных
