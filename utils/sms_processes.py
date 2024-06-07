@@ -21,6 +21,7 @@ async def send_sms_via_gsm(text: str, number: str) -> bool:
         logger.info(f'Устройство не подключено')
         await change_task_status(3)
     else:
+        logger.info(f'Идет отправка сообщения на номер {number}...')
         try:
             gms_logs = 0
             gsm_module = serial.Serial(port, 9600)
