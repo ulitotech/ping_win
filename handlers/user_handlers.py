@@ -15,11 +15,18 @@ from states.user_states import FSMUser
 from utils.image_processing import get_numeric_code_from_image, iccid_to_correct_form
 from utils.ping_processing import connection_test
 from lexicon.lexicon_ru import lexicon_for_bot
-
+import asyncio
 user_router = Router()
 user_router.message.filter(IsUser())
 
 logger.add("log_file.log", retention="5 days")
+
+
+# @user_router.message(F.text=='1')
+# async def add(message: Message, session: AsyncSession):
+#     await add_task(session, 'lol', '1')
+#     await add_task(session, 'kek', '2')
+#     await add_task(session, 'cheburek', '3')
 
 
 # Не тревожить при работе сервера
@@ -228,21 +235,41 @@ async def send_sms(callback_query: CallbackQuery,
                    session: AsyncSession, state: FSMContext):
     state_data = await state.get_data()
     sms = await sms_parameters(session, callback_data.id, iccid=state_data['iccid'])
-    logger.info(f"Пользователь: {callback_query.from_user.id} отправил СМС на номер: {sms['number_tel']}")
-    await callback_query.message.edit_text(text="<u>Отправь СМС с текстом</u>\n"
-                                                f"<b>ТЕКСТ</b> <i>(нажать для копирования)</i>:\n"
-                                                f"<code>{sms['text'].replace(chr(160), chr(32))}</code>\n"
-                                                f"<b>НОМЕР</b>:\n"
-                                                f"+{sms['number_tel']}",
-                                           reply_markup=get_callback_btns(
-                                               btns={
-                                                   lexicon_for_bot['try_again']:
-                                                       MenuCallBack(menu_name='try_ping_again').pack(),
-                                                   lexicon_for_bot['main']: MenuCallBack(menu_name='main').pack(),
-                                               },
-                                               sizes=(1, 1)
-                                           )
-                                           )
+    await state.set_state(FSMUser.server)
+    await callback_query.message.edit_text(text=lexicon_for_bot['sending_sms'])
+    logger.info(f"Пользователь: {callback_query.from_user.id} создание задания на отправку"
+                f" СМС на номер {sms['number_tel']}")
+    sending_result = await add_task(session, text=sms['text'].replace(chr(160), chr(32)),
+                                    phone_number=f"+{sms['number_tel']}")
+    if sending_result:
+        await callback_query.message.edit_text(text="✅ СМС успешно отправлено, повторите попытку ping",
+                                               reply_markup=get_callback_btns(
+                                                   btns={
+                                                       lexicon_for_bot['try_again']:
+                                                           MenuCallBack(menu_name='try_ping_again').pack(),
+                                                       lexicon_for_bot['main']: MenuCallBack(menu_name='main').pack(),
+                                                   },
+                                                   sizes=(1, 1)
+                                               )
+                                               )
+    else:
+        logger.info(f"Пользователь: {callback_query.from_user.id} получил данные для отправки СМС на номер:"
+                    f" {sms['number_tel']}")
+        await callback_query.message.edit_text(text="<b>😔 Неудача при автоматической отправке СМС. "
+                                                    "Попробуйте вручную.</b>\n"
+                                                    f"<b>ТЕКСТ</b> <i>(нажать для копирования)</i>:\n"
+                                                    f"<code>{sms['text'].replace(chr(160), chr(32))}</code>\n"
+                                                    f"<b>НОМЕР</b>:\n"
+                                                    f"+{sms['number_tel']}",
+                                               reply_markup=get_callback_btns(
+                                                   btns={
+                                                       lexicon_for_bot['try_again']:
+                                                           MenuCallBack(menu_name='try_ping_again').pack(),
+                                                       lexicon_for_bot['main']: MenuCallBack(menu_name='main').pack(),
+                                                   },
+                                                   sizes=(1, 1)
+                                               )
+                                               )
     await state.set_state(FSMUser.iccid)
 
 
@@ -276,7 +303,6 @@ async def try_ping_again(callback_query: CallbackQuery, state: FSMContext, sessi
     else:
         start_msg_id = state_data['start_msg_id']
         current_msg_id = callback_query.message.message_id
-        print(start_msg_id, current_msg_id)
         await callback_query.bot.delete_messages(chat_id=callback_query.message.chat.id,
                                                  message_ids=[i for i in range(start_msg_id + 1, current_msg_id + 2)])
         if 'try_ping_again_2' in callback_query.data:

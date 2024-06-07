@@ -12,6 +12,9 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from utils.working_with_task import check_task_table
 ALLOWED_UPDATES = ['message', 'callback_query']
 
+# Создание расписания
+scheduler = AsyncIOScheduler(job_defaults={'max_instances': 20})
+
 
 # Создание/удаление БД
 async def on_startup():
@@ -27,6 +30,7 @@ async def on_startup():
 
 
 async def on_shutdown():
+    scheduler.shutdown()
     logger.info("Бот выключился")
 
 
@@ -52,7 +56,6 @@ async def main():
     dp.include_router(other_handlers.other_router)
 
     logger.info('Запуск scheduler...')
-    scheduler = AsyncIOScheduler(job_defaults={'max_instances': 20})
     scheduler.add_job(check_task_table, "interval", seconds=1, args=())
     scheduler.start()
 
@@ -64,5 +67,7 @@ async def main():
 if __name__ == '__main__':
     try:
         asyncio.run(main())
-    except KeyboardInterrupt as e:
+    except KeyboardInterrupt as ke:
+        logger.exception(f"Выключение при нажатии клавиши:\n{ke}")
+    except Exception as e:
         logger.exception(f"Произошла ошибка:\n{e}")

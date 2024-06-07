@@ -1,6 +1,6 @@
 import html
 from asyncio import sleep
-
+import time
 from aiogram import Bot
 from aiogram.types import Message
 from sqlalchemy import select, delete, update
@@ -224,6 +224,16 @@ async def add_operators(session: AsyncSession, message: Message):
 async def add_task(session: AsyncSession, text: str, phone_number: str):
     session.add(Task(text=text, phone_number=phone_number))
     await session.commit()
+    start_time = time.time()
+    while time.time() - start_time < 10:
+        result = await check_task(phone_number)
+        if result.status == 2:
+            await del_task()
+            return True
+        await sleep(1)
+        if result.status == 3:
+            return False
+    return False
 
 
 async def del_task():
@@ -232,10 +242,10 @@ async def del_task():
         await conn.execute(query)
 
 
-async def change_task_status():
+async def change_task_status(status: int):
     async with engine.begin() as conn:
         first_task = await get_task()
-        query = update(Task).where(Task.id == first_task.id).values(status=1)
+        query = update(Task).where(Task.id == first_task.id).values(status=status)
         await conn.execute(query)
 
 
@@ -245,3 +255,11 @@ async def get_task():
         await conn.execute(query)
         result = await conn.execute(query)
         return result.first()
+
+
+async def check_task(phone_number: str):
+    async with engine.begin() as conn:
+        query = select(Task.phone_number, Task.status).where(Task.phone_number == phone_number)
+        await conn.execute(query)
+        result = await conn.execute(query)
+        return result.one_or_none()
