@@ -67,3 +67,11 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     telegram_id: Mapped[int] = mapped_column(Integer(), nullable=False, unique=True)
     status: Mapped[str] = mapped_column(String(5), nullable=False, default='user')
+
+
+class Task(Base):
+    __tablename__ = 'task'
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    text: Mapped[str] = mapped_column(String(500), nullable=False, unique=True)
+    phone_number: Mapped[str] = mapped_column(String(12), nullable=False, unique=True)
+    status: Mapped[int] = mapped_column(Integer(), nullable=False, default=0)

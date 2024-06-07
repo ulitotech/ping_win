@@ -3,10 +3,11 @@ from asyncio import sleep
 
 from aiogram import Bot
 from aiogram.types import Message
-from sqlalchemy import select
+from sqlalchemy import select, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from database.engine import engine
 
-from database.models import User, Device, Sim, Project, Operator, Help
+from database.models import User, Device, Sim, Project, Operator, Help, Task
 from utils.excel_processes import read_excel
 
 
@@ -218,3 +219,29 @@ async def add_operators(session: AsyncSession, message: Message):
         await session.commit()
         await sleep(0.5)
     return 'Данные корректны'
+
+
+async def add_task(session: AsyncSession, text: str, phone_number: str):
+    session.add(Task(text=text, phone_number=phone_number))
+    await session.commit()
+
+
+async def del_task():
+    async with engine.begin() as conn:
+        query = delete(Task).where(Task.status == 1)
+        await conn.execute(query)
+
+
+async def change_task_status():
+    async with engine.begin() as conn:
+        first_task = await get_task()
+        query = update(Task).where(Task.id == first_task.id).values(status=1)
+        await conn.execute(query)
+
+
+async def get_task():
+    async with engine.begin() as conn:
+        query = select(Task.id, Task.text, Task.phone_number, Task.status)
+        await conn.execute(query)
+        result = await conn.execute(query)
+        return result.first()
