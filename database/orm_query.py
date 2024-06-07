@@ -232,6 +232,7 @@ async def add_task(session: AsyncSession, text: str, phone_number: str):
             return True
         await sleep(1)
         if result.status == 3:
+            await del_task()
             return False
     return False
 
