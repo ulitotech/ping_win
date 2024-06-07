@@ -6,7 +6,7 @@ from aiogram.types import Message, CallbackQuery
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Union
-from database.orm_query import get_sim, get_devices, sms_parameters, get_help, get_task, del_task, add_task
+from database.orm_query import get_sim, get_devices, sms_parameters, get_help
 from errors.errors import wrong_content
 from filters.filters import IsUser
 from keyboards.inline_keyboards import get_callback_btns, MenuCallBack, DeviceCallBack, get_devices_pagination, \
