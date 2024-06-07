@@ -74,5 +74,5 @@ class Task(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     text: Mapped[str] = mapped_column(String(500))
-    phone_number: Mapped[int] = mapped_column(Integer())
+    phone_number: Mapped[str] = mapped_column(String(12))
     status: Mapped[int] = mapped_column(Integer(), default=0)
