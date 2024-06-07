@@ -7,7 +7,7 @@ async def connection_test(ip: str) -> bool:
         cmd = f'ping -c 1 {ip}'
     else:
         cmd = f'ping /n 1 {ip}'
-    for i in range(5):
+    for i in range(3):
         process = await asyncio.create_subprocess_shell(cmd,
                                                         stdout=asyncio.subprocess.PIPE,
                                                         stderr=asyncio.subprocess.PIPE)
