@@ -10,3 +10,4 @@ async def check_task_table():
         await change_task_status(1)
         logger.info(f'Задание по отправке СМС на номер {task.phone_number} принято в работу')
         await send_sms_via_gsm(task.text, task.phone_number)
+        logger.info(f'Задание по отправке СМС на номер {task.phone_number} удалено')

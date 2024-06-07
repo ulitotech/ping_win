@@ -239,7 +239,7 @@ async def add_task(session: AsyncSession, text: str, phone_number: str):
 
 async def del_task():
     async with engine.begin() as conn:
-        query = delete(Task).where(Task.status == 1)
+        query = delete(Task).where(Task.status != 0)
         await conn.execute(query)
 
 
