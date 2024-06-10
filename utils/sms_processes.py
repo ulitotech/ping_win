@@ -9,9 +9,9 @@ import html
 def define_com_port():
     ports = list(serial.tools.list_ports.comports())
     for p in ports:
-        if 'ch340' or 'ch341' in p.description.lower():
+        if 'ch340' in p.description.lower() or 'ch341' in p.description.lower():
             return p.device
-            break
+    return None
 
 
 async def send_sms_via_gsm(text: str, number: str) -> bool:

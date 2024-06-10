@@ -12,9 +12,10 @@
 - Automaticaly sending SMS
 
 ## Docker settings
- 
+
 For share USB port with GSM module  to Docker container you should execute code below
 ```bash
 sudo docker build -t <image name>
 sudo docker run -d -t -i --device=/dev/ttyUSB0 <image name>
 ```
+> Also GSM module must be connected before running Docker container!!

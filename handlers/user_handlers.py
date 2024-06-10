@@ -73,7 +73,7 @@ async def main_menu(income: Union[CallbackQuery, Message], state: FSMContext):
 
 # Меню выбора справки
 @user_router.callback_query(MenuCallBack.filter(F.menu_name == 'help'), StateFilter(FSMUser.work))
-async def user_help_menu(callback_query: CallbackQuery, session: AsyncSession):
+async def user_help_menu(callback_query: CallbackQuery):
     await callback_query.message.edit_text(
         text=lexicon_for_bot['choice_help'],
         reply_markup=get_callback_btns(
@@ -261,7 +261,7 @@ async def send_sms(callback_query: CallbackQuery,
     await state.set_state(FSMUser.server)
     await callback_query.message.edit_text(text=lexicon_for_bot['sms_ping'])
     logger.info(f"Пользователь: {callback_query.from_user.id} создал задание на отправку"
-                f" СМС на номер {sms['number_tel']}")
+                f" СМС на номер +{sms['number_tel']}")
     sending_result = await add_task(session, text=sms['text'].replace(chr(160), chr(32)),
                                     phone_number=f"+{sms['number_tel']}")
     if sending_result:
@@ -288,8 +288,8 @@ async def send_sms(callback_query: CallbackQuery,
             )
             await state.set_state(FSMUser.iccid)
     else:
-        logger.info(f"Пользователь: {callback_query.from_user.id} получил данные для отправки СМС на номер:"
-                    f" {sms['number_tel']}")
+        logger.info(f"Пользователь: {callback_query.from_user.id} получил данные для самостоятельной отправки СМС"
+                    f" на номер: +{sms['number_tel']}")
         await callback_query.message.edit_text(text="<b>😔 Неудача при автоматической отправке СМС. "
                                                     "Попробуйте вручную.</b>\n"
                                                     f"<b>ТЕКСТ</b> <i>(нажать для копирования)</i>:\n"
@@ -321,7 +321,7 @@ async def try_ping_again(callback_query: CallbackQuery, state: FSMContext):
         start_msg_id = state_data['start_msg_id']
         current_msg_id = callback_query.message.message_id
         await callback_query.bot.delete_messages(chat_id=callback_query.message.chat.id,
-                                                 message_ids=[i for i in range(start_msg_id + 1, current_msg_id + 2)])
+                                                 message_ids=[i for i in range(start_msg_id, current_msg_id + 2)])
         await callback_query.answer(
             text=f'{lexicon_for_bot["good_ping"]}{state_data["iccid"]}\nIP: {state_data["ip"]}',
             reply_markup=get_callback_btns(
