@@ -267,6 +267,11 @@ async def send_sms(callback_query: CallbackQuery,
     if sending_result:
         await sleep(10)
         if await connection_test(state_data['ip']):
+            logger.info(f"Пользователь: {callback_query.from_user.id}: повторный ping {state_data['iccid']} успешен")
+            start_msg_id = state_data['start_msg_id']
+            current_msg_id = callback_query.message.message_id
+            await callback_query.bot.delete_messages(chat_id=callback_query.message.chat.id,
+                                                     message_ids=[i for i in range(start_msg_id, current_msg_id)])
             await callback_query.message.edit_text(
                 text=f'{lexicon_for_bot["good_ping"]}{state_data["iccid"]}\nIP: {state_data["ip"]}',
                 reply_markup=get_callback_btns(
@@ -277,6 +282,11 @@ async def send_sms(callback_query: CallbackQuery,
                 )
             )
         else:
+            logger.info(f"Пользователь: {callback_query.from_user.id}: повторный ping {state_data['iccid']} неуспешен")
+            start_msg_id = state_data['start_msg_id']
+            current_msg_id = callback_query.message.message_id
+            await callback_query.bot.delete_messages(chat_id=callback_query.message.chat.id,
+                                                     message_ids=[i for i in range(start_msg_id, current_msg_id + 2)])
             await callback_query.message.answer(
                 text=f"{lexicon_for_bot['no_connection']}\n",
                 reply_markup=get_callback_btns(
@@ -318,11 +328,12 @@ async def try_ping_again(callback_query: CallbackQuery, state: FSMContext):
     await callback_query.message.delete()
     await callback_query.message.answer(lexicon_for_bot['sms_ping'])
     if await connection_test(state_data['ip']):
+        logger.info(f"Пользователь: {callback_query.from_user.id}: повторный ping {state_data['iccid']} успешен")
         start_msg_id = state_data['start_msg_id']
         current_msg_id = callback_query.message.message_id
         await callback_query.bot.delete_messages(chat_id=callback_query.message.chat.id,
-                                                 message_ids=[i for i in range(start_msg_id, current_msg_id + 2)])
-        await callback_query.answer(
+                                                 message_ids=[i for i in range(start_msg_id, current_msg_id+2)])
+        await callback_query.message.answer(
             text=f'{lexicon_for_bot["good_ping"]}{state_data["iccid"]}\nIP: {state_data["ip"]}',
             reply_markup=get_callback_btns(
                 btns={
@@ -332,12 +343,12 @@ async def try_ping_again(callback_query: CallbackQuery, state: FSMContext):
             )
         )
         await state.set_state(FSMUser.work)
-        logger.info(f"Пользователь: {callback_query.from_user.id}: повторный ping {state_data['iccid']} успешен")
     else:
+        logger.info(f"Пользователь: {callback_query.from_user.id}: повторный ping {state_data['iccid']} неуспешен")
         start_msg_id = state_data['start_msg_id']
         current_msg_id = callback_query.message.message_id
         await callback_query.bot.delete_messages(chat_id=callback_query.message.chat.id,
-                                                 message_ids=[i for i in range(start_msg_id, current_msg_id + 2)])
+                                                 message_ids=[i for i in range(start_msg_id, current_msg_id+2)])
         await callback_query.message.answer(
                                             text=f"{lexicon_for_bot['no_connection']}",
                                             reply_markup=get_callback_btns(
@@ -348,7 +359,6 @@ async def try_ping_again(callback_query: CallbackQuery, state: FSMContext):
                                             )
                                             )
         await state.set_state(FSMUser.work)
-        logger.info(f"Пользователь: {callback_query.from_user.id}: повторный ping {state_data['iccid']} неуспешен")
 
 
 # Удаление всех неожидаемых данных
