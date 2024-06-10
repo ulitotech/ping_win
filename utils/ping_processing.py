@@ -1,6 +1,7 @@
 import asyncio
 from sys import platform
 
+
 async def connection_test(ip: str) -> bool:
     """Пингует ip 5 раз и возвращает состояние устройства"""
     if 'linux' in platform:

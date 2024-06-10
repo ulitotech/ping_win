@@ -9,7 +9,7 @@ import html
 def define_com_port():
     ports = list(serial.tools.list_ports.comports())
     for p in ports:
-        if 'CH340' in p.description:
+        if 'ch340' in p.description.lower():
             return p.device
             break
 
@@ -18,7 +18,7 @@ async def send_sms_via_gsm(text: str, number: str) -> bool:
     port = define_com_port()
     await sleep(1)
     if port is None:
-        logger.info(f'Устройство не подключено')
+        logger.info(f'GSM модуль не подключен')
         await change_task_status(3)
     else:
         logger.info(f'Идет отправка сообщения на номер {number}...')
@@ -45,7 +45,7 @@ async def send_sms_via_gsm(text: str, number: str) -> bool:
             if 'error' in answer.lower():
                 gms_logs += 1
             text_sms = f'{html.unescape(text)}\r\n'
-            gsm_module.write(text_sms.encode())
+            gsm_module.write(text_sms.rstrip().encode())
             await sleep(2)
             answer = gsm_module.read_all().decode()
             if 'error' in answer.lower():
@@ -61,7 +61,7 @@ async def send_sms_via_gsm(text: str, number: str) -> bool:
                 logger.info(f'CМС отправлено на номер {number}')
             else:
                 await change_task_status(3)
-                logger.info(f'Ошибка при выполнении АТ комманд')
+                logger.info(f'Ошибка при выполнении АТ команд')
         except Exception as e:
             await change_task_status(3)
             logger.info(f'Ошибка при автоматической отправке СМС на номер {number}\n{e}')

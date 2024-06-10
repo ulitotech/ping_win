@@ -43,7 +43,7 @@ def get_devices_pagination(btns: dict[str, str], current_page: int):
                                           page=current_page + 1 if current_page < max_page else current_page,
                                           command='next' if current_page < max_page else 'now').pack()),
                  InlineKeyboardButton(text='🆘 В списке нет устройства',
-                                      callback_data=MenuCallBack(level=3, menu_name='support').pack()),
+                                      callback_data=MenuCallBack(level=3, menu_name='no_device').pack()),
                  InlineKeyboardButton(text='💈 На главную',
                                       callback_data=MenuCallBack(level=1, menu_name='main').pack()), )
     return keyboard.adjust(*(1 for _ in range(len(btns))), 3, 1).as_markup()
