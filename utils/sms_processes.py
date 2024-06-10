@@ -9,19 +9,15 @@ import html
 def define_com_port():
     ports = list(serial.tools.list_ports.comports())
     for p in ports:
-        logger.info(f"я здесь {p.description}")
-    for p in ports:
         if 'ch340' or 'ch341' in p.description.lower():
             return p.device
             break
-    return None
 
 
 async def send_sms_via_gsm(text: str, number: str) -> bool:
     port = define_com_port()
     await sleep(1)
     if port is None:
-        logger.info(f"я тут {port}")
         logger.info(f'GSM модуль не подключен')
         await change_task_status(3)
     else:
