@@ -8,6 +8,7 @@ import html
 
 def define_com_port():
     ports = list(serial.tools.list_ports.comports())
+    logger.info(f'Определены порты {[p for p in ports]}')
     for p in ports:
         if 'ch340' in p.description.lower() or 'ch341' in p.description.lower():
             return p.device
