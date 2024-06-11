@@ -2,10 +2,13 @@ from aiogram import Router, F
 from aiogram.types import Message
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
-from database.orm_query import add_users, add_operators, add_sims, add_devices, add_projects, add_helps
+from database.orm_query import add_users, add_operators, add_sims, add_devices, add_projects, add_helps, add_user,\
+    get_users, drop_sim_table
 from filters.filters import IsAdmin
 from sqlalchemy import exc
 from lexicon.lexicon_ru import lexicon_for_bot
+from aiogram.filters import StateFilter
+from aiogram.fsm.state import default_state
 admin_router = Router()
 admin_router.message.filter(IsAdmin())
 
@@ -84,3 +87,29 @@ async def add_to_database(message: Message, session: AsyncSession):
             except exc.SQLAlchemyError as e:
                 await message.answer(lexicon_for_bot['check_loaded_base'])
                 logger.info(f"Пользователь: {message.from_user.id} попытался загрузить в базу данные с ошибкой")
+
+
+# Добавить пользователя
+@admin_router.message(lambda x: 'add_user' in x.text, StateFilter(default_state))
+async def adding_user(message: Message, session: AsyncSession):
+    await message.delete()
+    result = await add_user(session, message)
+    await message.answer(result)
+
+
+# Получить полный список пользователей
+@admin_router.message(F.text.in_('get_users'), StateFilter(default_state))
+async def getting_user(message: Message, session: AsyncSession):
+    await message.delete()
+    users = await get_users(session, message)
+    result = '\n'.join([f'🙍🏼‍♂️{u.telegram_id}|{u.status}' for u in users])
+    await message.answer(result)
+
+
+# Дропнуть таблицу СИМ
+@admin_router.message(F.text.in_('drop_sim'), StateFilter(default_state))
+async def dropping_sim(message: Message, session: AsyncSession):
+    await message.delete()
+    result = await drop_sim_table(session, message)
+    await message.answer(result)
+

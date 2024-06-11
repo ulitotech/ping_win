@@ -6,9 +6,47 @@ from aiogram.types import Message
 from sqlalchemy import select, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from database.engine import engine
-
+from loguru import logger
 from database.models import User, Device, Sim, Project, Operator, Help, Task
 from utils.excel_processes import read_excel
+
+
+async def drop_sim_table(session: AsyncSession, message: Message)->str:
+        query = delete(Sim)
+        try:
+            await session.execute(query)
+            logger.info(f"Пользователь: {message.from_user.id} удалил базу СИМ")
+            return 'БД с СИМ удалена'
+        except Exception as _:
+            logger.info(f"Пользователь: {message.from_user.id} ошибка при удалении БД с СИМ")
+            return 'Произошла ошибка при удалении БД с СИМ'
+
+
+async def add_user(session: AsyncSession, message: Message):
+    user_parameters = message.text.split('_')
+    id = user_parameters[2]
+    if not id.isdigit() or len(id) != 9:
+        logger.info(f"Пользователь: {message.from_user.id} попытался добавить нового пользователя с "
+                    f"некорректным id: {id}")
+        return 'Неверный формат id пользователя'
+    try:
+        session.add(User(
+            telegram_id=id,
+            status='user',
+        ))
+        await session.commit()
+        logger.info(f"Пользователь: {message.from_user.id} добавил нового пользователя: {id}")
+        return 'Новый пользователь добавлен'
+    except Exception as _:
+        logger.info(f"Пользователь: {message.from_user.id} общая ошибка при добавлении пользователя")
+        return 'Ошибка при внесении пользователя в БД'
+
+
+async def get_users(session: AsyncSession, message:Message):
+    query = select(User.telegram_id, User.status)
+    result = await session.execute(query)
+    logger.info(f"Пользователь: {message.from_user.id} получил список всех пользователей")
+    return result.all()
 
 
 async def add_users(session: AsyncSession, message: Message):
