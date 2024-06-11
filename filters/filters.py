@@ -14,7 +14,7 @@ class IsAdmin(BaseFilter):
 
     async def __call__(self, message: Message, session: AsyncSession):
         user = await check_user(session, message, 'admin')
-        return user is not None or message.from_user.id in [a for a in ADMIN.split(',')]
+        return user is not None or str(message.from_user.id) in [str(a) for a in ADMIN.split(',')]
 
 
 class IsUser(BaseFilter):
