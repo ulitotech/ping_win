@@ -15,11 +15,12 @@ async def drop_sim_table(session: AsyncSession, message: Message)->str:
         query = delete(Sim)
         try:
             await session.execute(query)
+            await session.commit()
             logger.info(f"Пользователь: {message.from_user.id} удалил базу СИМ")
-            return 'БД с СИМ удалена'
+            return '✅ БД с СИМ удалена'
         except Exception as _:
             logger.info(f"Пользователь: {message.from_user.id} ошибка при удалении БД с СИМ")
-            return 'Произошла ошибка при удалении БД с СИМ'
+            return '❌ Произошла ошибка при удалении БД с СИМ'
 
 
 async def add_user(session: AsyncSession, message: Message):
@@ -28,7 +29,7 @@ async def add_user(session: AsyncSession, message: Message):
     if not id.isdigit() or len(id) != 9:
         logger.info(f"Пользователь: {message.from_user.id} попытался добавить нового пользователя с "
                     f"некорректным id: {id}")
-        return 'Неверный формат id пользователя'
+        return '❌ Неверный формат id пользователя'
     try:
         session.add(User(
             telegram_id=id,
@@ -36,10 +37,10 @@ async def add_user(session: AsyncSession, message: Message):
         ))
         await session.commit()
         logger.info(f"Пользователь: {message.from_user.id} добавил нового пользователя: {id}")
-        return 'Новый пользователь добавлен'
+        return '✅ Новый пользователь добавлен'
     except Exception as _:
         logger.info(f"Пользователь: {message.from_user.id} общая ошибка при добавлении пользователя")
-        return 'Ошибка при внесении пользователя в БД'
+        return '❌ Ошибка при внесении пользователя в БД'
 
 
 async def get_users(session: AsyncSession, message:Message):
