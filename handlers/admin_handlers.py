@@ -90,7 +90,7 @@ async def add_to_database(message: Message, session: AsyncSession):
 
 
 # Добавить пользователя
-@admin_router.message(lambda message: 'add_user_' in message.text, StateFilter(default_state))
+@admin_router.message(F.text, lambda message: 'add_user_' in message.text, StateFilter(default_state))
 async def adding_user(message: Message, session: AsyncSession):
     await message.delete()
     result = await add_user(session, message)
