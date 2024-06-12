@@ -29,7 +29,7 @@ async def add_user(session: AsyncSession, message: Message):
         id = user_parameters[2]
     except IndexError as ie:
         return '❌ Не введен id'
-    if not id.isdigit() or len(id) != 9:
+    if not id.isdigit() or len(id) > 8:
         logger.info(f"Пользователь: {message.from_user.id} попытался добавить нового пользователя с "
                     f"некорректным id: {id}")
         return '❌ Неверный формат id пользователя'

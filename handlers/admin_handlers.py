@@ -90,7 +90,7 @@ async def add_to_database(message: Message, session: AsyncSession):
 
 
 # Добавить пользователя
-@admin_router.message(lambda x: 'add_user' in x.text, StateFilter(default_state))
+@admin_router.message(F.text.contain('add_user_'), StateFilter(default_state))
 async def adding_user(message: Message, session: AsyncSession):
     await message.delete()
     result = await add_user(session, message)
@@ -98,7 +98,7 @@ async def adding_user(message: Message, session: AsyncSession):
 
 
 # Получить полный список пользователей
-@admin_router.message(F.text.in_('get_users'), StateFilter(default_state))
+@admin_router.message(F.text.contain('get_users'), StateFilter(default_state))
 async def getting_user(message: Message, session: AsyncSession):
     await message.delete()
     users = await get_users(session, message)
@@ -107,7 +107,7 @@ async def getting_user(message: Message, session: AsyncSession):
 
 
 # Дропнуть таблицу СИМ
-@admin_router.message(F.text.in_('drop_sim'), StateFilter(default_state))
+@admin_router.message(F.text.contain('drop_sim'), StateFilter(default_state))
 async def dropping_sim(message: Message, session: AsyncSession):
     await message.delete()
     result = await drop_sim_table(session, message)
