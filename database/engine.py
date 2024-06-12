@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from database.models import Base
 from config_data.config import load_config
-from sqlalchemy import delete, select
+from sqlalchemy import delete
 from database.models import Task
 
 config_data = load_config()
