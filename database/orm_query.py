@@ -29,21 +29,22 @@ async def add_user(session: AsyncSession, message: Message):
         id = user_parameters[2]
     except IndexError as ie:
         return '❌ Не введен id'
-    if not id.isdigit() or len(id) > 8:
+    if not id.isdigit() or len(str(id)) < 8:
         logger.info(f"Пользователь: {message.from_user.id} попытался добавить нового пользователя с "
                     f"некорректным id: {id}")
         return '❌ Неверный формат id пользователя'
-    try:
-        session.add(User(
-            telegram_id=id,
-            status='user',
-        ))
-        await session.commit()
-        logger.info(f"Пользователь: {message.from_user.id} добавил нового пользователя: {id}")
-        return '✅ Новый пользователь добавлен'
-    except Exception as _:
-        logger.info(f"Пользователь: {message.from_user.id} общая ошибка при добавлении пользователя")
-        return '❌ Ошибка при внесении пользователя в БД'
+    else:
+        try:
+            session.add(User(
+                telegram_id=id,
+                status='user',
+            ))
+            await session.commit()
+            logger.info(f"Пользователь: {message.from_user.id} добавил нового пользователя: {id}")
+            return '✅ Новый пользователь добавлен'
+        except Exception as _:
+            logger.info(f"Пользователь: {message.from_user.id} общая ошибка при добавлении пользователя")
+            return '❌ Ошибка при внесении пользователя в БД'
 
 
 async def get_users(session: AsyncSession, message:Message):
