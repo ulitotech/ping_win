@@ -3,7 +3,7 @@ from sys import platform
 
 
 async def connection_test(ip: str) -> bool:
-    """Пингует ip 5 раз и возвращает состояние устройства"""
+    """Пингует ip несколько раз и возвращает состояние устройства"""
     if 'linux' in platform:
         cmd = f'ping -c 1 {ip}'
     else:
