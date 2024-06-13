@@ -63,9 +63,9 @@ async def send_sms_via_gsm(text: str, number: str) -> bool:
             answer = gsm_module.read_all().decode()
             if 'error' in answer.lower():
                 gms_logs += 1
-            await change_task_status(2)
             if gms_logs == 0:
                 logger.info(f'CМС отправлено на номер {number}')
+                await change_task_status(2)
             else:
                 await change_task_status(3)
                 logger.info(f'Ошибка при выполнении АТ команд')

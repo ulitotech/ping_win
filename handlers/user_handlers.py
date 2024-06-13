@@ -281,6 +281,7 @@ async def send_sms(callback_query: CallbackQuery,
                     sizes=(1, 1)
                 )
             )
+            await state.set_state(FSMUser.work)
         else:
             logger.info(f"Пользователь: {callback_query.from_user.id}: повторный ping {state_data['iccid']} неуспешен")
             start_msg_id = state_data['start_msg_id']
@@ -296,7 +297,7 @@ async def send_sms(callback_query: CallbackQuery,
                     sizes=(1, 1)
                 )
             )
-            await state.set_state(FSMUser.iccid)
+            await state.set_state(FSMUser.work)
     else:
         logger.info(f"Пользователь: {callback_query.from_user.id} получил данные для самостоятельной отправки СМС"
                     f" на номер: +{sms['number_tel']}")

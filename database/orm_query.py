@@ -267,17 +267,20 @@ async def add_operators(session: AsyncSession, message: Message):
 async def add_task(session: AsyncSession, text: str, phone_number: str):
     session.add(Task(text=text, phone_number=phone_number))
     await session.commit()
-    start_time = time.time()
-    while time.time() - start_time < 10:
+    i = 0
+    while True:
         result = await check_task(phone_number)
-        if result.status == 2:
+        if result and result.status == 2:
             await del_task()
             return True
-        await sleep(1)
-        if result.status == 3:
+        if result and result.status == 3:
             await del_task()
             return False
-    return False
+        if i == 60:
+            await del_task()
+            return False
+        i += 1
+        await sleep(1)
 
 
 async def del_task():
