@@ -33,7 +33,7 @@ class ThrottlingMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: Dict[str, Any]
     ) -> Any:
-        throttling_delta = datetime.timedelta(milliseconds=300)
+        throttling_delta = datetime.timedelta(milliseconds=100)
         use_limit = datetime.timedelta(seconds=10)
         usr_id = None
         upd_date = datetime.datetime.now()
