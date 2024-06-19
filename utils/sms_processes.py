@@ -24,6 +24,7 @@ def define_com_port():
 async def send_sms_via_gsm(text: str, number: str) -> bool:
     port = define_com_port()
     await sleep(0.5)
+    cmnds = text.split('separator')
     if port is None:
         logger.info(f'GSM модуль не подключен')
         await change_task_status(3)
@@ -31,8 +32,9 @@ async def send_sms_via_gsm(text: str, number: str) -> bool:
         logger.info(f'Идет отправка сообщения на номер {number}...')
         try:
             cmnds = text.split('separator')
-            for c in cmnds:
-                gms_logs = 0
+            logger.info(f"Подготовлены команды {cmnds}")
+            gms_logs = 0
+            for cmnd in cmnds:
                 gsm_module = serial.Serial(port, 9600)
                 await sleep(1)
                 cmd = "AT\r\n"
@@ -53,7 +55,7 @@ async def send_sms_via_gsm(text: str, number: str) -> bool:
                 answer = gsm_module.read_all().decode()
                 if 'error' in answer.lower():
                     gms_logs += 1
-                text_sms = f'{html.unescape(c)}\r\n'
+                text_sms = f'{html.unescape(cmnd)}\r\n'
                 gsm_module.write(text_sms.rstrip().encode())
                 await sleep(2)
                 answer = gsm_module.read_all().decode()
@@ -65,7 +67,6 @@ async def send_sms_via_gsm(text: str, number: str) -> bool:
                 answer = gsm_module.read_all().decode()
                 if 'error' in answer.lower():
                     gms_logs += 1
-                await sleep(0.5)
             if gms_logs == 0:
                 logger.info(f'CМС отправлено на номер {number}')
                 await change_task_status(2)
