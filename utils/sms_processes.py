@@ -55,6 +55,7 @@ async def send_sms_via_gsm(text: str, number: str) -> bool:
                 answer = gsm_module.read_all().decode()
                 if 'error' in answer.lower():
                     gms_logs += 1
+                logger.info(f'Попытка отправить комманду {cmnd}')
                 text_sms = f'{html.unescape(cmnd)}\r\n'
                 gsm_module.write(text_sms.rstrip().encode())
                 await sleep(2)
