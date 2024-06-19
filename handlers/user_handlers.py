@@ -304,7 +304,7 @@ async def send_sms(callback_query: CallbackQuery,
         await callback_query.message.edit_text(text="<b>😔 Неудача при автоматической отправке СМС. "
                                                     "Попробуйте вручную.</b>\n"
                                                     f"<b>ТЕКСТ</b> <i>(нажать для копирования)</i>:\n"
-                                                    f"<code>{sms['text'].replace(chr(160), chr(32))}</code>\n"
+                                                    f"<code>{sms['text'].replace(chr(160), chr(32)).split('separator')[0]}</code>\n"
                                                     f"<b>НОМЕР</b>:\n"
                                                     f"+{sms['number_tel']}",
                                                reply_markup=get_callback_btns(

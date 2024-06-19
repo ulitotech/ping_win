@@ -23,46 +23,49 @@ def define_com_port():
 
 async def send_sms_via_gsm(text: str, number: str) -> bool:
     port = define_com_port()
-    await sleep(1)
+    await sleep(0.5)
     if port is None:
         logger.info(f'GSM модуль не подключен')
         await change_task_status(3)
     else:
         logger.info(f'Идет отправка сообщения на номер {number}...')
         try:
-            gms_logs = 0
-            gsm_module = serial.Serial(port, 9600)
-            await sleep(1)
-            cmd = "AT\r\n"
-            gsm_module.write(cmd.encode())
-            await sleep(0.5)
-            answer = gsm_module.read_all().decode()
-            if 'error' in answer.lower():
-                gms_logs += 1
-            cmd = "AT+CMGF=1\r\n"
-            gsm_module.write(cmd.encode())
-            await sleep(0.5)
-            answer = gsm_module.read_all().decode()
-            if 'error' in answer.lower():
-                gms_logs += 1
-            cmd = f'AT+CMGS="{number}"\r\n'
-            gsm_module.write(cmd.encode())
-            await sleep(0.5)
-            answer = gsm_module.read_all().decode()
-            if 'error' in answer.lower():
-                gms_logs += 1
-            text_sms = f'{html.unescape(text)}\r\n'
-            gsm_module.write(text_sms.rstrip().encode())
-            await sleep(2)
-            answer = gsm_module.read_all().decode()
-            if 'error' in answer.lower():
-                gms_logs += 1
-            sms = '\r\n'
-            gsm_module.write(sms.encode())
-            await sleep(0.5)
-            answer = gsm_module.read_all().decode()
-            if 'error' in answer.lower():
-                gms_logs += 1
+            cmnds = text.split('separator')
+            for c in cmnds:
+                gms_logs = 0
+                gsm_module = serial.Serial(port, 9600)
+                await sleep(1)
+                cmd = "AT\r\n"
+                gsm_module.write(cmd.encode())
+                await sleep(0.5)
+                answer = gsm_module.read_all().decode()
+                if 'error' in answer.lower():
+                    gms_logs += 1
+                cmd = "AT+CMGF=1\r\n"
+                gsm_module.write(cmd.encode())
+                await sleep(0.5)
+                answer = gsm_module.read_all().decode()
+                if 'error' in answer.lower():
+                    gms_logs += 1
+                cmd = f'AT+CMGS="{number}"\r\n'
+                gsm_module.write(cmd.encode())
+                await sleep(0.5)
+                answer = gsm_module.read_all().decode()
+                if 'error' in answer.lower():
+                    gms_logs += 1
+                text_sms = f'{html.unescape(c)}\r\n'
+                gsm_module.write(text_sms.rstrip().encode())
+                await sleep(2)
+                answer = gsm_module.read_all().decode()
+                if 'error' in answer.lower():
+                    gms_logs += 1
+                sms = '\r\n'
+                gsm_module.write(sms.encode())
+                await sleep(0.5)
+                answer = gsm_module.read_all().decode()
+                if 'error' in answer.lower():
+                    gms_logs += 1
+                await sleep(0.5)
             if gms_logs == 0:
                 logger.info(f'CМС отправлено на номер {number}')
                 await change_task_status(2)
