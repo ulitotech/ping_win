@@ -8,7 +8,7 @@ from sys import platform
 
 def define_com_port():
     ports = list(serial.tools.list_ports.comports())
-    logger.info(f'Определены порты {[p for p in ports]}')
+    logger.info(f'Определены порты с {[p.description for p in ports]}')
     if platform in ('linux', 'linux2',):
         for port in ports:
             return port.device
@@ -34,9 +34,9 @@ async def send_sms_via_gsm(text: str, number: str) -> bool:
             cmnds = text.split('separator')
             logger.info(f"Подготовлены команды {cmnds}")
             gms_logs = 0
+            gsm_module = serial.Serial(port, 9600)
+            await sleep(1)
             for cmnd in cmnds:
-                gsm_module = serial.Serial(port, 9600)
-                await sleep(1)
                 cmd = "AT\r\n"
                 gsm_module.write(cmd.encode())
                 await sleep(0.5)
@@ -66,6 +66,7 @@ async def send_sms_via_gsm(text: str, number: str) -> bool:
                 gsm_module.write(sms.encode())
                 await sleep(0.5)
                 answer = gsm_module.read_all().decode()
+                await sleep(0.5)
                 if 'error' in answer.lower():
                     gms_logs += 1
             if gms_logs == 0:
