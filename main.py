@@ -47,7 +47,7 @@ async def main():
     dp.startup.register(on_startup)
     dp.shutdown.register(on_shutdown)
     dp.update.middleware(DatabaseSession(session_pool=session_maker))
-    dp.update.outer_middleware(ThrottlingMiddleware())
+#    dp.update.outer_middleware(ThrottlingMiddleware())
 
     logger.info('Подключение роутеров...')
 
