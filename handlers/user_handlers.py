@@ -22,19 +22,19 @@ user_router.message.filter(IsUser())
 logger.add("log_file.log", retention="5 days")
 
 
-# Не тревожить при работе сервера
-@user_router.message(StateFilter(FSMUser.server))
-async def skip_while_server(message: Message):
-    await message.delete()
-    logger.info(f"Пользователь: {message.from_user.id} проявил активность при работе сервера")
-
-
 # Завершение работы бота
 @user_router.message(Command('exit'), ~StateFilter(default_state))
 async def goodbye(message: Message, state: FSMContext):
     await message.bot.delete_messages(chat_id=message.chat.id, message_ids=[message.message_id, message.message_id - 1])
     await state.set_state(default_state)
     logger.info(f"Пользователь: {message.from_user.id} вышел из бота")
+
+
+# Не тревожить при работе сервера
+@user_router.message(StateFilter(FSMUser.server))
+async def skip_while_server(message: Message):
+    await message.delete()
+    logger.info(f"Пользователь: {message.from_user.id} проявил активность при работе сервера")
 
 
 # Главное меню
