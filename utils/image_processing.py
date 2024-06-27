@@ -9,7 +9,7 @@ import string
 
 def iccid_to_correct_form(number: str) -> list:
     """Функция для приведения ICCID к требуемому виду"""
-    number = number.translate(string.punctuation)
+    number = ''.join(i for i in number.translate(string.punctuation) if i.isdigit())
     if number.isdigit() and 17 <= len(number) <= 20:
         if '8970102' in number and len(number) >= 17:
             return number[:17]
