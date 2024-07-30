@@ -15,7 +15,6 @@ from states.user_states import FSMUser
 from utils.image_processing import get_numeric_code_from_image, iccid_to_correct_form
 from utils.ping_processing import connection_test
 from lexicon.lexicon_ru import lexicon_for_bot
-from asyncio import sleep
 user_router = Router()
 user_router.message.filter(IsUser())
 
@@ -265,7 +264,6 @@ async def send_sms(callback_query: CallbackQuery,
     sending_result = await add_task(session, text=sms['text'].replace(chr(160), chr(32)),
                                     phone_number=f"+{sms['number_tel']}")
     if sending_result:
-        await sleep(10)
         if await connection_test(state_data['ip']):
             logger.info(f"Пользователь: {callback_query.from_user.id}: повторный ping {state_data['iccid']} успешен")
             start_msg_id = state_data['start_msg_id']

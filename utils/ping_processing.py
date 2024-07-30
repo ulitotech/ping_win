@@ -1,19 +1,25 @@
 import asyncio
 from sys import platform
+import datetime
 
 
 async def connection_test(ip: str) -> bool:
     """Пингует ip несколько раз и возвращает состояние устройства"""
     if 'linux' in platform:
-        cmd = f'ping -c 1 -w 3 {ip}'
+        cmd = ['ping', '-c', '130', '-W', '5' f'{ip}']
     else:
-        cmd = f'ping -n 1 -i 3 {ip}'
-    for i in range(3):
-        process = await asyncio.create_subprocess_shell(cmd,
-                                                        stdout=asyncio.subprocess.PIPE,
-                                                        stderr=asyncio.subprocess.PIPE)
-        stdout, stderr = await process.communicate()
-        decoded_result = stdout.decode(encoding='cp866')
-        if any(ans in decoded_result for ans in ['ttl', 'TTL']):
-            return True
+        cmd = ['ping', '-n', '130', '-w', '5000', f'{ip}']
+    process = await asyncio.create_subprocess_exec(*cmd,
+                                                   stdout=asyncio.subprocess.PIPE,
+                                                   stderr=asyncio.subprocess.PIPE)
+    timeout = datetime.timedelta(seconds=120)
+    start = datetime.datetime.now()
+    while datetime.datetime.now() - start < timeout:
+        line = await process.stdout.readline()
+        if line.decode(encoding='cp866'):
+            decoded_result = (line.decode(encoding='cp866'))
+            if any(ans in decoded_result for ans in ['ttl', 'TTL']):
+                process._transport.close()
+                return True
+    process._transport.close()
     return False
