@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 from loguru import logger
 
 
-async def connection_test(ip: str, state: FSMContext, user_id:str) -> bool:
+async def connection_test(ip: str, state: FSMContext, user_id: str) -> bool:
     """Пингует ip несколько раз и возвращает состояние устройства"""
     if 'linux' in platform:
         cmd = ['ping', '-c', '130', '-W', '5', '-O', f'{ip}']
