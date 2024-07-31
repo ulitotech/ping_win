@@ -26,6 +26,7 @@ logger.add("log_file.log", retention="5 days")
 async def goodbye(message: Message, state: FSMContext):
     await message.bot.delete_messages(chat_id=message.chat.id, message_ids=[message.message_id, message.message_id - 1])
     await state.set_state(default_state)
+    await state.update_data(kill_process=0)
     logger.info(f"Пользователь: {message.from_user.id} вышел из бота")
 
 
@@ -160,7 +161,8 @@ async def ping_device(message: Message, state: FSMContext, session: AsyncSession
                                                   message_ids=[message.message_id, message.message_id - 1])
                 await state.set_state(FSMUser.server)
                 await message.answer(lexicon_for_bot['wait_for_server'])
-                if await connection_test(sim_card.ip):
+                result_connection_test = await connection_test(sim_card.ip, state, message.from_user.id)
+                if result_connection_test is True:
                     state_data = await state.get_data()
                     start_msg_id = state_data['start_msg_id']
                     current_msg_id = message.message_id
@@ -178,7 +180,7 @@ async def ping_device(message: Message, state: FSMContext, session: AsyncSession
                     )
                     await state.set_state(FSMUser.work)
                     logger.info(f"Пользователь: {message.from_user.id} ping {prepared_number} успешен")
-                else:
+                elif result_connection_test is False:
                     if str(sim_card.number_tel).isdigit() and len(sim_card.number_tel) == 11:
                         await state.set_state(FSMUser.sms)
                         if sim_card.ip != '':
@@ -264,7 +266,8 @@ async def send_sms(callback_query: CallbackQuery,
     sending_result = await add_task(session, text=sms['text'].replace(chr(160), chr(32)),
                                     phone_number=f"+{sms['number_tel']}")
     if sending_result:
-        if await connection_test(state_data['ip']):
+        result_connection_test = await connection_test(state_data['ip'], state, callback_query.from_user.id)
+        if result_connection_test is True:
             logger.info(f"Пользователь: {callback_query.from_user.id}: повторный ping {state_data['iccid']} успешен")
             start_msg_id = state_data['start_msg_id']
             current_msg_id = callback_query.message.message_id
@@ -280,7 +283,7 @@ async def send_sms(callback_query: CallbackQuery,
                 )
             )
             await state.set_state(FSMUser.work)
-        else:
+        elif result_connection_test is False:
             logger.info(f"Пользователь: {callback_query.from_user.id}: повторный ping {state_data['iccid']} неуспешен")
             start_msg_id = state_data['start_msg_id']
             current_msg_id = callback_query.message.message_id
@@ -326,7 +329,8 @@ async def try_ping_again(callback_query: CallbackQuery, state: FSMContext):
     await state.set_state(FSMUser.server)
     await callback_query.message.delete()
     await callback_query.message.answer(lexicon_for_bot['sms_ping'])
-    if await connection_test(state_data['ip']):
+    result_connection_test = await connection_test(state_data['ip'], state, callback_query.from_user.id)
+    if result_connection_test is True:
         logger.info(f"Пользователь: {callback_query.from_user.id}: повторный ping {state_data['iccid']} успешен")
         start_msg_id = state_data['start_msg_id']
         current_msg_id = callback_query.message.message_id
@@ -342,7 +346,7 @@ async def try_ping_again(callback_query: CallbackQuery, state: FSMContext):
             )
         )
         await state.set_state(FSMUser.work)
-    else:
+    elif result_connection_test is False:
         logger.info(f"Пользователь: {callback_query.from_user.id}: повторный ping {state_data['iccid']} неуспешен")
         start_msg_id = state_data['start_msg_id']
         current_msg_id = callback_query.message.message_id

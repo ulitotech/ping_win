@@ -8,3 +8,4 @@ class FSMUser(StatesGroup):
     sms = State()
     ip = State()
     start_msg_id = State()
+    kill_process = State()
