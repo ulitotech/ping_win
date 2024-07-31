@@ -6,7 +6,6 @@ import datetime
 async def connection_test(ip: str) -> bool:
     """Пингует ip несколько раз и возвращает состояние устройства"""
     if 'linux' in platform:
-        print('это линуха')
         cmd = ['ping', '-c', '130', '-W', '5', '-O', f'{ip}']
     else:
         cmd = ['ping', '-n', '130', '-w', '5000', f'{ip}']
@@ -19,7 +18,6 @@ async def connection_test(ip: str) -> bool:
         line = await process.stdout.readline()
         if line.decode(encoding='cp866'):
             decoded_result = (line.decode(encoding='cp866'))
-            print(decoded_result)
             if any(ans in decoded_result for ans in ['ttl', 'TTL']):
                 process._transport.close()
                 return True
